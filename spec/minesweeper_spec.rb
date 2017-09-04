@@ -4,14 +4,14 @@ describe Board do
   context "#new" do
     let(:width) {10}
     let(:height) {5}
-    let(:arr) {[0]*3}
+    let(:arr) {['.']*3}
     context "verify initialization" do
       it "width == 10, height == 5 and board[key] == 0" do
         board = Board.new(width, height)
-        bHash = board.hashBoard
         expect(board.width).to eq(width)
         expect(board.height).to eq(height)
-        expect([bHash[0],bHash[1000000],bHash[42]]).to include(*arr)
+        expect([board[0,0],board[1000000,500],board[4,2]]).to include(*arr)
+        expect(board.size).to eq(50)
       end
     end
   end
@@ -21,11 +21,28 @@ describe Board do
       it "x == 0, y == 0, return 0" do
         expect(board.pairToKey(0,0)).to eq(0)
       end
-      it "x == 10, y == 5, return 0" do
-      expect(board.pairToKey(10,5)).to eq(500000005)
+      it "x == 10, y == 5, return 500000005" do
+      expect(board.pairToKey(10,5)).to eq(5005)
       end
-      it "x == 3, y == 2, return 0" do
-      expect(board.pairToKey(3,2)).to eq(150000002)
+      it "x == 3, y == 2, return 150000002" do
+      expect(board.pairToKey(3,2)).to eq(1502)
+      end
+    end
+  end
+  context "#verify_bomb" do
+    context "test cases" do
+      it "all cells are bombs" do
+        board = Board.new(5,5)
+        board.setRandomMines(25)
+        expect(board.verify_bomb(1,'')).to eq(false)
+        expect(board.verify_bomb(12,'')).to eq(false)
+        expect(board.verify_bomb(7,'')).to eq(false)
+      end
+      it "board without bombs" do
+        board = Board.new(5,5)
+        expect(board.verify_bomb(1,'')).to eq(true)
+        expect(board.verify_bomb(12,'')).to eq(true)
+        expect(board.verify_bomb(7,'')).to eq(true)
       end
     end
   end
@@ -42,6 +59,7 @@ describe Minesweeper do
         expect(minesweeper.board.width).to eq(width)
         expect(minesweeper.board.height).to eq(height)
         expect(minesweeper.num_mines).to eq(num_mines)
+        expect(minesweeper.valid_plays).to eq(0)
       end
     end
     context "no params" do
@@ -50,6 +68,7 @@ describe Minesweeper do
         expect(minesweeper.board.width).to eq(8)
         expect(minesweeper.board.height).to eq(8)
         expect(minesweeper.num_mines).to eq(10)
+        expect(minesweeper.valid_plays).to eq(0)
       end
     end
     context "Test invalid params" do
