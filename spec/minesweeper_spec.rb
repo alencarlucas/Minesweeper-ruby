@@ -11,7 +11,6 @@ describe Board do
         expect(board.width).to eq(width)
         expect(board.height).to eq(height)
         expect([board[0,0],board[1000000,500],board[4,2]]).to include(*arr)
-        expect(board.size).to eq(50)
       end
     end
   end
@@ -29,20 +28,20 @@ describe Board do
       end
     end
   end
-  context "#verify_bomb" do
+  context "#verify_mine" do
     context "test cases" do
-      it "all cells are bombs" do
+      it "all cells are mines" do
         board = Board.new(5,5)
         board.setRandomMines(25)
-        expect(board.verify_bomb(1,'')).to eq(false)
-        expect(board.verify_bomb(12,'')).to eq(false)
-        expect(board.verify_bomb(7,'')).to eq(false)
+        expect(board.verify_mine(1,'')).to eq(false)
+        expect(board.verify_mine(12,'')).to eq(false)
+        expect(board.verify_mine(7,'')).to eq(false)
       end
-      it "board without bombs" do
+      it "board without mines" do
         board = Board.new(5,5)
-        expect(board.verify_bomb(1,'')).to eq(true)
-        expect(board.verify_bomb(12,'')).to eq(true)
-        expect(board.verify_bomb(7,'')).to eq(true)
+        expect(board.verify_mine(1,'')).to eq(true)
+        expect(board.verify_mine(12,'')).to eq(true)
+        expect(board.verify_mine(7,'')).to eq(true)
       end
     end
   end
@@ -60,6 +59,7 @@ describe Minesweeper do
         expect(minesweeper.board.height).to eq(height)
         expect(minesweeper.num_mines).to eq(num_mines)
         expect(minesweeper.valid_plays).to eq(0)
+        expect(minesweeper.size).to eq(50)
       end
     end
     context "no params" do
@@ -69,6 +69,7 @@ describe Minesweeper do
         expect(minesweeper.board.height).to eq(8)
         expect(minesweeper.num_mines).to eq(10)
         expect(minesweeper.valid_plays).to eq(0)
+        expect(minesweeper.size).to eq(64)
       end
     end
     context "Test invalid params" do
@@ -95,5 +96,12 @@ describe Minesweeper do
         end
       end
     end
+  end
+  context "#SimplePrinter" do
+    context "Integration test"
+      it "default values" do
+        minesweeper = Minesweeper.new()
+        minesweeper.SimplePrinter
+      end
   end
 end
