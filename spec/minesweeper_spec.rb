@@ -55,20 +55,20 @@ describe Minesweeper do
   context "#new" do
     context "when all parameters are specified" do
       it "width == 10, height == 5, num_Bombs == 15" do
-        Bombsweeper = Minesweeper.new(width, height, num_Bombs)
-        expect(Bombsweeper.board.width).to eq(width)
-        expect(Bombsweeper.board.height).to eq(height)
-        expect(Bombsweeper.num_Bombs).to eq(num_Bombs)
-        expect(Bombsweeper.size).to eq(50)
+        minesweeper = Minesweeper.new(width, height, num_Bombs)
+        expect(minesweeper.board.width).to eq(width)
+        expect(minesweeper.board.height).to eq(height)
+        expect(minesweeper.num_Bombs).to eq(num_Bombs)
+        expect(minesweeper.size).to eq(50)
       end
     end
     context "no params" do
       it "default board 8x8 10 Bombs" do
-        Bombsweeper = Minesweeper.new()
-        expect(Bombsweeper.board.width).to eq(8)
-        expect(Bombsweeper.board.height).to eq(8)
-        expect(Bombsweeper.num_Bombs).to eq(10)
-        expect(Bombsweeper.size).to eq(64)
+        minesweeper = Minesweeper.new()
+        expect(minesweeper.board.width).to eq(8)
+        expect(minesweeper.board.height).to eq(8)
+        expect(minesweeper.num_Bombs).to eq(10)
+        expect(minesweeper.size).to eq(64)
       end
     end
     context "Test invalid params" do

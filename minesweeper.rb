@@ -99,13 +99,17 @@ class Board
 
   def []=(x,y,value)
     index = pairToKey(x,y)
+    #verifica se não vai clicar na bomba
     if(verify_Bomb(index, value))
       @hashBoard[index] = value
+      #se abriu uma célula vazia chama a função de verificar vizinhos e
+      #incrementa o contador de jogadas válidas
       if(value == ' ')
         verify_neighbor x, y
         @valid_plays = @valid_plays + 1
         unmark
       end
+    #se clicou na bomba atribui "X" à posição e retorna false
     else
       @hashBoard[index] = 'X'
       false
@@ -126,14 +130,16 @@ class Board
     end
   end
 
-  def getCellStatus index, flag_xray
-      @hashBomb[index] == '#' && flag_xray ? '#' : @hashBoard[index]
+  #retorna o status da célula, se a flag_xray == true e a posição for uma bomba
+  #apresenta-a na tela
+  def getCellStatus index, flag_xray, flag_finish
+      @hashBomb[index] == '#' && (flag_xray&&!flag_finish) ? '#' : @hashBoard[index]
   end
 
 end
 
 class Minesweeper
-  attr_accessor :num_Bombs, :size, :board
+  attr_accessor :num_Bombs, :size, :board, :flag_finish
 
   def initialize width = 8, height = 8, num_Bombs = 10
     raise ArgumentError.new "all params need be numbers" if [width,height,num_Bombs].all? {|i| not(i.is_a? Numeric) }
@@ -141,22 +147,28 @@ class Minesweeper
     @num_Bombs, @size = num_Bombs, width.to_i*height.to_i
     @board = Board.new(width,height)
     @board.setRandomMines(num_Bombs)
+    @flag_finish = true
   end
 
+  #retorna verdadeiro caso não tenha clicado em uma bomba e tenha sobrado
+  #no tabuleiro n células, onde n é igual ao número de bombas
   def victory?
     board_state[:clicked_bomb].empty? && @board.valid_plays == @size - @num_Bombs
   end
 
   def still_playing?
-    board_state[:clicked_bomb].empty? && !victory?
+    @flag_finish = (board_state[:clicked_bomb].empty? && !victory?)
+    @flag_finish
   end
 
+  #Tenta realizar uma jogada, caso a posição seja inválida retorna false
   def play x,y
     if @board[x,y] == '.'
       @board[x,y] = ' '
     else
       false
     end
+    true
   end
 
   #retorna um hash com o estado do jogo
@@ -175,7 +187,7 @@ class Minesweeper
     unknown_cell, clear_cell, flag, bomb, clicked_bomb = Array.new(5) { [] }
     to_print = Hash.new()
     [*1..@size].each do |e|
-      case board.getCellStatus(e, xray)
+      case board.getCellStatus(e, xray, @flag_finish)
       when '.'
         unknown_cell.push(e)
       when ' '
@@ -187,7 +199,7 @@ class Minesweeper
       when 'X'
         clicked_bomb.push(e)
       end
-      to_print[e] = board.getCellStatus(e, xray)
+      to_print[e] = board.getCellStatus(e, xray, @flag_finish)
     end
     Hash[
       :"unknown_cell" => unknown_cell,
@@ -201,7 +213,8 @@ class Minesweeper
     ]
   end
 
-  
+  #Função utilizada para 'flagar' uma célula oculta
+  #se a célula já estiver flagada volta-a ao estado anterior (célula oculta)
   def flag x,y
     case @board[x,y]
       when '.'
@@ -211,5 +224,6 @@ class Minesweeper
       else
         false
     end
+    true
   end
 end
