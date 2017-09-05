@@ -29,20 +29,20 @@ describe Board do
       end
     end
   end
-  context "#verify_mine" do
+  context "#verify_Bomb" do
     context "test cases" do
-      it "all cells are mines" do
+      it "all cells are Bombs" do
         board = Board.new(5,5)
         board.setRandomMines(25)
-        expect(board.verify_mine(1,'')).to eq(false)
-        expect(board.verify_mine(12,'')).to eq(false)
-        expect(board.verify_mine(7,'')).to eq(false)
+        expect(board.verify_Bomb(1,' ')).to eq(false)
+        expect(board.verify_Bomb(12,' ')).to eq(false)
+        expect(board.verify_Bomb(7,' ')).to eq(false)
       end
-      it "board without mines" do
+      it "board without Bombs" do
         board = Board.new(5,5)
-        expect(board.verify_mine(1,'')).to eq(true)
-        expect(board.verify_mine(12,'')).to eq(true)
-        expect(board.verify_mine(7,'')).to eq(true)
+        expect(board.verify_Bomb(1,' ')).to eq(true)
+        expect(board.verify_Bomb(12,' ')).to eq(true)
+        expect(board.verify_Bomb(7,' ')).to eq(true)
       end
     end
   end
@@ -51,24 +51,24 @@ end
 describe Minesweeper do
   let(:width) {10}
   let(:height) {5}
-  let(:num_mines) {15}
+  let(:num_Bombs) {15}
   context "#new" do
     context "when all parameters are specified" do
-      it "width == 10, height == 5, num_mines == 15" do
-        minesweeper = Minesweeper.new(width, height, num_mines)
-        expect(minesweeper.board.width).to eq(width)
-        expect(minesweeper.board.height).to eq(height)
-        expect(minesweeper.num_mines).to eq(num_mines)
-        expect(minesweeper.size).to eq(50)
+      it "width == 10, height == 5, num_Bombs == 15" do
+        Bombsweeper = Minesweeper.new(width, height, num_Bombs)
+        expect(Bombsweeper.board.width).to eq(width)
+        expect(Bombsweeper.board.height).to eq(height)
+        expect(Bombsweeper.num_Bombs).to eq(num_Bombs)
+        expect(Bombsweeper.size).to eq(50)
       end
     end
     context "no params" do
-      it "default board 8x8 10 mines" do
-        minesweeper = Minesweeper.new()
-        expect(minesweeper.board.width).to eq(8)
-        expect(minesweeper.board.height).to eq(8)
-        expect(minesweeper.num_mines).to eq(10)
-        expect(minesweeper.size).to eq(64)
+      it "default board 8x8 10 Bombs" do
+        Bombsweeper = Minesweeper.new()
+        expect(Bombsweeper.board.width).to eq(8)
+        expect(Bombsweeper.board.height).to eq(8)
+        expect(Bombsweeper.num_Bombs).to eq(10)
+        expect(Bombsweeper.size).to eq(64)
       end
     end
     context "Test invalid params" do
@@ -76,7 +76,7 @@ describe Minesweeper do
         it "width == -1 raise ArgumentError" do
           expect{Minesweeper.new(-1,0,3)}.to raise_error(ArgumentError)
         end
-        it "num_mines == -33 raise ArgumentError" do
+        it "num_Bombs == -33 raise ArgumentError" do
           expect{Minesweeper.new(1,0,-33)}.to raise_error(ArgumentError)
         end
         it "all params less than zero raise ArgumentError" do
@@ -87,7 +87,7 @@ describe Minesweeper do
         it "width == 'q' raise ArgumentError" do
           expect{Minesweeper.new('q',0,3)}.to raise_error(ArgumentError)
         end
-        it "num_mines == 'vinte' raise ArgumentError" do
+        it "num_Bombs == 'vinte' raise ArgumentError" do
           expect{Minesweeper.new(1,0,'vinte')}.to raise_error(ArgumentError)
         end
         it "all params not numbers raise ArgumentError" do
@@ -96,9 +96,32 @@ describe Minesweeper do
       end
     end
   end
-  context "Test the app !" do
-    context "you win" do
-      it "ss" do
-        game = Minesweeper.new()
+  context "Run game" do
+    context "Simulate using random" do
+      let(:width) {10}
+      let(:height) {20}
+      let(:num_Bombs) {50}
+      it "Quero Exemple" do
+
+        game = Minesweeper.new(width, height, num_Bombs)
+
+        while game.still_playing?
+          valid_move = game.play(rand(width), rand(height))
+          valid_flag = game.flag(rand(width), rand(height))
+          if valid_move or valid_flag
+          printer = (rand > 0.5) ? SimplePrinter.new : PrettyPrinter.new
+          printer.print(game.board_state)
+          end
+        end
+
+        puts "Fim do jogo!"
+        if game.victory?
+          puts "Você venceu!"
+        else
+          puts "Você perdeu! As minas eram:"
+          PrettyPrinter.new.print(game.board_state(xray: true))
+        end
+      end
+    end
   end
 end

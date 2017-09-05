@@ -26,17 +26,17 @@ class PrettyPrinter
     puts '============================='
   end
 end
-#class to represent the minesweeper board
-class Board
-  attr_accessor :width, :height, :clicked_a_mine, :hashBoard, :valid_plays
 
-  #initialize the board with size parameters
-  #set all positions equals 0 (empty cell)
+#Classe que representa o tabuleiro do jogo
+class Board
+  attr_accessor :width, :height, :hashBoard, :valid_plays
+
+  #inicializa o tabuleiro com os parâmetros de tamanho
+  #seta todas as posições como '.' (célula vazia)
   def initialize(x,y)
     @width, @height = x, y
     @hashBoard = Hash.new('.')
-    @hashmine = Hash.new()
-    @clicked_a_mine = false
+    @hashBomb = Hash.new()
     @valid_plays = 0
   end
 
@@ -48,10 +48,13 @@ class Board
     @hashBoard[pairToKey(x,y)]
   end
 
-  def verify_mine index, value
-    @hashmine[index] != '#' || value != ' '
+  #verifica se a posição que se esta querendo clicar é uma mina
+  def verify_Bomb index, value
+    @hashBomb[index] != '#' || value != ' '
   end
 
+  #função usada para desmarcar de 'xF' para 'F' as posições visitadas
+  #durante execução do método open_neighbors
   def unmark
     [*1..@width*@height].each do |e|
       if (@hashBoard[e] == 'xF' )
@@ -61,35 +64,42 @@ class Board
     end
   end
 
-  def verify_neighbor x, y
-    flagShow = true
-    arr = Array.new()
-    [-1,1,0].product([1,-1,0]).each do |pair|
-      if(pair[0] != 0 || pair[1] != 0 )
-        neighbor = [pair[0]+x, pair[1]+y]
-        index = pairToKey(neighbor[0],neighbor[1])
-        if([*1..@width*@height].include?(index) && @hashmine[index] != '#')
-          #push [[x,y],index]
-          arr.push([neighbor,index])
-        else
-          flagShow = false
-        end
-      end
-    end
-    if(flagShow)
-      arr.each do |neighbor|
-        if(@hashBoard[neighbor[1]] == '.' || @hashBoard[neighbor[1]] == 'F')
-          @hashBoard[neighbor[1]] = (@hashBoard[neighbor[1]] == 'F' ? "xF" : ' ')
-          @valid_plays = @valid_plays + 1
-          verify_neighbor neighbor[0][0], neighbor[0][1]
-        end
+  #função utilizada para "clicar" as posições vizinhas válidas
+  #caso a posição esteja flagada ela é marcada como visitada 'xF'
+  def open_neighbors arr
+    arr.each do |neighbor|
+      if(@hashBoard[neighbor[1]] == '.' || @hashBoard[neighbor[1]] == 'F')
+        @hashBoard[neighbor[1]] = (@hashBoard[neighbor[1]] == 'F' ? "xF" : ' ')
+        @valid_plays = @valid_plays + 1
+        verify_neighbor neighbor[0][0], neighbor[0][1]
       end
     end
   end
 
+  #verifica quais são os vizinhos de (x,y) que satisfazem
+  #as condições para serem abertos
+  def verify_neighbor x, y
+    arr = Array.new()
+    [-1,1,0].product([1,-1,0]).each do |pair|
+      if(pair[0] != 0 || pair[1] != 0 )
+        neighbor = [pair[0].to_i+x, pair[1].to_i+y]
+        index = pairToKey(neighbor[0],neighbor[1])
+        if([*1..@width*@height].include?(index))
+          if(@hashBomb[index] != '#')
+            #push [[x,y],index]
+            arr.push([neighbor,index])
+          else
+            return
+          end
+        end
+      end
+    end
+    open_neighbors(arr)
+  end
+
   def []=(x,y,value)
     index = pairToKey(x,y)
-    if(verify_mine(index, value))
+    if(verify_Bomb(index, value))
       @hashBoard[index] = value
       if(value == ' ')
         verify_neighbor x, y
@@ -98,44 +108,43 @@ class Board
       end
     else
       @hashBoard[index] = 'X'
-      @clicked_a_mine = true
       false
     end
   end
 
-  #function used to refer a pair as a key
+  #Função usada para converter uma coordenada (x,y) para um inteiro único
   def pairToKey(xi,yi)
     (xi*(@height)+yi)
   end
 
-  #set random cells equals 1 (mine position)
+  #Define e armazena as posições com bombas
   def setRandomMines(maxMines)
     [*0..@width-1].product([*0..@height-1]).sample(maxMines).each do |pair|
         if(pair[0] != 0 || pair[1] != 0)
-          @hashmine[pairToKey(pair[0].to_i,pair[1].to_i)] = '#'
+          @hashBomb[pairToKey(pair[0].to_i,pair[1].to_i)] = '#'
         end
     end
   end
 
   def getCellStatus index, flag_xray
-      @hashmine[index] == '#' && flag_xray ? '#' : @hashBoard[index]
+      @hashBomb[index] == '#' && flag_xray ? '#' : @hashBoard[index]
   end
 
 end
 
 class Minesweeper
-  attr_accessor :num_mines, :size, :board
+  attr_accessor :num_Bombs, :size, :board
 
-  def initialize width = 8, height = 8, num_mines = 10
-    raise ArgumentError.new "all params need be numbers" if [width,height,num_mines].all? {|i| not(i.is_a? Numeric) }
-    raise ArgumentError.new "all params need be greater than zero" if ([width,height,num_mines].min.to_i < 0)
-    @num_mines, @size = num_mines, width.to_i*height.to_i
+  def initialize width = 8, height = 8, num_Bombs = 10
+    raise ArgumentError.new "all params need be numbers" if [width,height,num_Bombs].all? {|i| not(i.is_a? Numeric) }
+    raise ArgumentError.new "all params need be greater than zero" if ([width,height,num_Bombs].min.to_i < 0)
+    @num_Bombs, @size = num_Bombs, width.to_i*height.to_i
     @board = Board.new(width,height)
-    @board.setRandomMines(num_mines)
+    @board.setRandomMines(num_Bombs)
   end
 
   def victory?
-    board_state[:clicked_bomb].empty? && @board.valid_plays == @size - @num_mines
+    board_state[:clicked_bomb].empty? && @board.valid_plays == @size - @num_Bombs
   end
 
   def still_playing?
@@ -150,13 +159,20 @@ class Minesweeper
     end
   end
 
+  #retorna um hash com o estado do jogo
+  # Hash[
+  #   :"unknown_cell" => célula que não foram clicadas,
+  #   :"clear_cell" => células clicadas e que estavam vazias,
+  #   :"bomb" => posições das bombas (precisa do parametro xray),
+  #   :"flag" => posições das flags,
+  #   :"clicked_bomb" => posição da bomba clicada,
+  #   :"xray" => mostrar ou não a posição das bombas,
+  #   :"to_print" => hash com os valores para imprimir ,
+  #   :"columns" => número de colunas
+  # ]
   def board_state args = {}
     xray = args.has_key?(:xray) ? args[:xray] : false
-    unknown_cell = Array.new()
-    clear_cell = Array.new()
-    flag = Array.new()
-    bomb = Array.new()
-    clicked_bomb = Array.new()
+    unknown_cell, clear_cell, flag, bomb, clicked_bomb = Array.new(5) { [] }
     to_print = Hash.new()
     [*1..@size].each do |e|
       case board.getCellStatus(e, xray)
@@ -185,6 +201,7 @@ class Minesweeper
     ]
   end
 
+  
   def flag x,y
     case @board[x,y]
       when '.'
@@ -195,26 +212,4 @@ class Minesweeper
         false
     end
   end
-end
-
-width, height, num_mines = 10, 4, 1
-game = Minesweeper.new(width, height, num_mines)
-
-while game.still_playing?
-  valid_move = game.play(rand(width), rand(height))
-  valid_flag = game.flag(rand(width), rand(height))
-  if valid_move or valid_flag
-    printer = (rand > 0.5) ? PrettyPrinter.new : PrettyPrinter.new
-    printer.print(game.board_state)
-    puts game.board_state[:clicked_bomb].empty?
-    puts game.victory?
-  end
-end
-
-puts "Fim do jogo!"
-if game.victory?
-  puts "Você venceu!"
-else
-  puts "Você perdeu! As minas eram:"
-  PrettyPrinter.new.print(game.board_state(xray: true))
 end
