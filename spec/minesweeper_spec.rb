@@ -19,13 +19,13 @@ describe Board do
     context "test cases" do
       board = Board.new(100000, 500)
       it "x == 0, y == 0, return 0" do
-        expect(board.pairToKey(0,0)).to eq(0)
+        expect(board.pairToKey(0,0)).to eq(501)
       end
       it "x == 10, y == 5, return 500000005" do
-      expect(board.pairToKey(10,5)).to eq(5005)
+      expect(board.pairToKey(10,5)).to eq(4505)
       end
       it "x == 3, y == 2, return 150000002" do
-      expect(board.pairToKey(3,2)).to eq(1502)
+      expect(board.pairToKey(3,2)).to eq(1002)
       end
     end
   end

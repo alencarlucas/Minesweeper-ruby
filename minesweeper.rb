@@ -48,6 +48,11 @@ class Board
     @hashBoard[pairToKey(x,y)]
   end
 
+  #verifica se é uma posição válida
+  def is_valid? pair
+    !![*1..@width*@height].include?(pairToKey(pair[0],pair[1]))
+  end
+
   #verifica se a posição que se esta querendo clicar é uma mina
   def verify_Bomb index, value
     @hashBomb[index] != '#' || value != ' '
@@ -84,7 +89,7 @@ class Board
       if(pair[0] != 0 || pair[1] != 0 )
         neighbor = [pair[0].to_i+x, pair[1].to_i+y]
         index = pairToKey(neighbor[0],neighbor[1])
-        if([*1..@width*@height].include?(index))
+        if(is_valid? neighbor)
           if(@hashBomb[index] != '#')
             #push [[x,y],index]
             arr.push([neighbor,index])
@@ -118,16 +123,23 @@ class Board
 
   #Função usada para converter uma coordenada (x,y) para um inteiro único
   def pairToKey(xi,yi)
+    if xi.to_i > 0
+      xi = xi - 1
+    elsif xi.to_i == 0
+      xi = xi + 1
+    end
+    if yi.to_i > 0
+      xy = yi - 1
+    elsif yi.to_i == 0
+      yi = yi + 1
+    end
     (xi*(@height)+yi)
   end
 
   #Define e armazena as posições com bombas
   def setRandomMines(maxMines)
-    [*0..@width-1].product([*0..@height-1]).sample(maxMines).each do |pair|
-        if(pair[0] != 0 || pair[1] != 0)
-          @hashBomb[pairToKey(pair[0].to_i,pair[1].to_i)] = '#'
-        end
-    end
+    arr = [*1..@width].product([*1..@height]).map { |pair|  pairToKey(pair[0].to_i,pair[1].to_i)}
+    maxMines.times { @hashBomb[arr.shuffle!.pop] = '#'}
   end
 
   #retorna o status da célula, se a flag_xray == true e a posição for uma bomba
@@ -163,12 +175,12 @@ class Minesweeper
 
   #Tenta realizar uma jogada, caso a posição seja inválida retorna false
   def play x,y
-    if @board[x,y] == '.'
+    if (@board[x,y] == '.' && @board.is_valid?([x,y]))
       @board[x,y] = ' '
+      true
     else
       false
     end
-    true
   end
 
   #retorna um hash com o estado do jogo
@@ -216,14 +228,15 @@ class Minesweeper
   #Função utilizada para 'flagar' uma célula oculta
   #se a célula já estiver flagada volta-a ao estado anterior (célula oculta)
   def flag x,y
-    case @board[x,y]
-      when '.'
-        @board[x,y] = 'F'
-      when 'F'
-        @board[x,y] = '.'
-      else
-        false
+    if( @board.is_valid?([x,y]))
+      case @board[x,y]
+        when '.'
+          @board[x,y] = 'F'
+        when 'F'
+          @board[x,y] = '.'
+      end
+      true
     end
-    true
+    false
   end
 end
