@@ -10,6 +10,7 @@ describe Board do
         board = Board.new(width, height)
         expect(board.width).to eq(width)
         expect(board.height).to eq(height)
+        expect(board.valid_plays).to eq(0)
         expect([board[0,0],board[1000000,500],board[4,2]]).to include(*arr)
       end
     end
@@ -58,7 +59,6 @@ describe Minesweeper do
         expect(minesweeper.board.width).to eq(width)
         expect(minesweeper.board.height).to eq(height)
         expect(minesweeper.num_mines).to eq(num_mines)
-        expect(minesweeper.valid_plays).to eq(0)
         expect(minesweeper.size).to eq(50)
       end
     end
@@ -68,7 +68,6 @@ describe Minesweeper do
         expect(minesweeper.board.width).to eq(8)
         expect(minesweeper.board.height).to eq(8)
         expect(minesweeper.num_mines).to eq(10)
-        expect(minesweeper.valid_plays).to eq(0)
         expect(minesweeper.size).to eq(64)
       end
     end
@@ -97,11 +96,9 @@ describe Minesweeper do
       end
     end
   end
-  context "#SimplePrinter" do
-    context "Integration test"
-      it "default values" do
-        minesweeper = Minesweeper.new()
-        minesweeper.SimplePrinter
-      end
+  context "Test the app !" do
+    context "you win" do
+      it "ss" do
+        game = Minesweeper.new()
   end
 end

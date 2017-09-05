@@ -16,7 +16,14 @@ class PrettyPrinter
   include InterfacePrinter
 
   def print state
-    puts state[:to_print]
+    state[:to_print].each do |key, value|
+      if key.to_i % state[:columns].to_i == 0
+        puts value
+      else
+        $stdout.print (value.to_s + " ")
+      end
+    end
+    puts '============================='
   end
 end
 #class to represent the minesweeper board
@@ -128,11 +135,11 @@ class Minesweeper
   end
 
   def victory?
-    @board.valid_plays == @size - @num_mines
+    board_state[:clicked_bomb].empty? && @board.valid_plays == @size - @num_mines
   end
 
   def still_playing?
-    !@board.clicked_a_mine || victory?
+    board_state[:clicked_bomb].empty? && !victory?
   end
 
   def play x,y
@@ -190,15 +197,17 @@ class Minesweeper
   end
 end
 
-width, height, num_mines = 10, 20, 50
+width, height, num_mines = 10, 4, 1
 game = Minesweeper.new(width, height, num_mines)
 
 while game.still_playing?
   valid_move = game.play(rand(width), rand(height))
   valid_flag = game.flag(rand(width), rand(height))
   if valid_move or valid_flag
-  printer = (rand > 0.5) ? SimplePrinter.new : PrettyPrinter.new
-  printer.print(game.board_state)
+    printer = (rand > 0.5) ? PrettyPrinter.new : PrettyPrinter.new
+    printer.print(game.board_state)
+    puts game.board_state[:clicked_bomb].empty?
+    puts game.victory?
   end
 end
 
