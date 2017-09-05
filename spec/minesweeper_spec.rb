@@ -98,28 +98,46 @@ describe Minesweeper do
   end
   context "Run game" do
     context "Simulate using random" do
-      let(:width) {10}
-      let(:height) {20}
-      let(:num_Bombs) {50}
-      it "Quero Exemple" do
+      context "width == 10, height == 20, num_Bombs == 150" do
+        let(:width) {10}
+        let(:height) {20}
+        let(:num_Bombs) {150}
+        it "Should lose" do
 
-        game = Minesweeper.new(width, height, num_Bombs)
+          game = Minesweeper.new(width, height, num_Bombs)
 
-        while game.still_playing?
-          valid_move = game.play(rand(width), rand(height))
-          valid_flag = game.flag(rand(width), rand(height))
-          if valid_move or valid_flag
-          printer = (rand > 0.5) ? SimplePrinter.new : PrettyPrinter.new
-          printer.print(game.board_state)
+          while game.still_playing?
+            valid_move = game.play(rand(width), rand(height))
+            valid_flag = game.flag(rand(width), rand(height))
+          end
+
+          puts "Fim do jogo!"
+          if game.victory?
+            puts "Você venceu!"
+          else
+            puts "Você perdeu! As minas eram:"
+            PrettyPrinter.new.print(game.board_state(xray: true))
           end
         end
+      end
+      context "width == 10, height == 20, num_Bombs == 1" do
 
-        puts "Fim do jogo!"
-        if game.victory?
-          puts "Você venceu!"
-        else
-          puts "Você perdeu! As minas eram:"
-          PrettyPrinter.new.print(game.board_state(xray: true))
+        it "Should win" do
+
+          game = Minesweeper.new(width, height, 1)
+
+          while game.still_playing?
+            valid_move = game.play(rand(width), rand(height))
+            valid_flag = game.flag(rand(width), rand(height))
+          end
+
+          puts "Fim do jogo!"
+          if game.victory?
+            puts "Você venceu!"
+          else
+            puts "Você perdeu! As minas eram:"
+            PrettyPrinter.new.print(game.board_state(xray: true))
+          end
         end
       end
     end
