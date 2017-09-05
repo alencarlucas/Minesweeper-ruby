@@ -1,6 +1,27 @@
+module InterfacePrinter
+  def print stateHash
+    raise "Not implemented"
+  end
+end
+
+class SimplePrinter
+  include InterfacePrinter
+
+  def print state
+    puts state[:to_print]
+  end
+end
+
+class PrettyPrinter
+  include InterfacePrinter
+
+  def print state
+    puts state[:to_print]
+  end
+end
 #class to represent the minesweeper board
 class Board
-  attr_accessor :width, :height, :clicked_a_mine, :hashBoard
+  attr_accessor :width, :height, :clicked_a_mine, :hashBoard, :valid_plays
 
   #initialize the board with size parameters
   #set all positions equals 0 (empty cell)
@@ -9,6 +30,7 @@ class Board
     @hashBoard = Hash.new('.')
     @hashmine = Hash.new()
     @clicked_a_mine = false
+    @valid_plays = 0
   end
 
   def [](i)
@@ -24,7 +46,12 @@ class Board
   end
 
   def unmark
-    [*1..@width*@height].each { |e| @hashBoard[e] = (@hashBoard[e] == 'xF' ? "F" : @hashBoard[e]) }
+    [*1..@width*@height].each do |e|
+      if (@hashBoard[e] == 'xF' )
+        @hashBoard[e] = 'F'
+        @valid_plays = @valid_plays - 1
+      end
+    end
   end
 
   def verify_neighbor x, y
@@ -46,6 +73,7 @@ class Board
       arr.each do |neighbor|
         if(@hashBoard[neighbor[1]] == '.' || @hashBoard[neighbor[1]] == 'F')
           @hashBoard[neighbor[1]] = (@hashBoard[neighbor[1]] == 'F' ? "xF" : ' ')
+          @valid_plays = @valid_plays + 1
           verify_neighbor neighbor[0][0], neighbor[0][1]
         end
       end
@@ -58,6 +86,7 @@ class Board
       @hashBoard[index] = value
       if(value == ' ')
         verify_neighbor x, y
+        @valid_plays = @valid_plays + 1
         unmark
       end
     else
@@ -75,32 +104,31 @@ class Board
   #set random cells equals 1 (mine position)
   def setRandomMines(maxMines)
     [*0..@width-1].product([*0..@height-1]).sample(maxMines).each do |pair|
-        if(pair[0] != 0 && pair[1] != 0)
+        if(pair[0] != 0 || pair[1] != 0)
           @hashmine[pairToKey(pair[0].to_i,pair[1].to_i)] = '#'
-          puts pairToKey(pair[0].to_i,pair[1].to_i)
         end
     end
   end
 
-  def getCellStatus index
-      @hashmine[index] == '#' ? '#' : @hashBoard[index]
+  def getCellStatus index, flag_xray
+      @hashmine[index] == '#' && flag_xray ? '#' : @hashBoard[index]
   end
 
 end
 
 class Minesweeper
-  attr_accessor :num_mines, :size, :board, :valid_plays
+  attr_accessor :num_mines, :size, :board
 
   def initialize width = 8, height = 8, num_mines = 10
     raise ArgumentError.new "all params need be numbers" if [width,height,num_mines].all? {|i| not(i.is_a? Numeric) }
     raise ArgumentError.new "all params need be greater than zero" if ([width,height,num_mines].min.to_i < 0)
-    @num_mines, @valid_plays, @size = num_mines, 0, width.to_i*height.to_i
+    @num_mines, @size = num_mines, width.to_i*height.to_i
     @board = Board.new(width,height)
     @board.setRandomMines(num_mines)
   end
 
   def victory?
-    valid_plays == @size - @num_mines
+    @board.valid_plays == @size - @num_mines
   end
 
   def still_playing?
@@ -115,14 +143,39 @@ class Minesweeper
     end
   end
 
-  def SimplePrinter
+  def board_state args = {}
+    xray = args.has_key?(:xray) ? args[:xray] : false
+    unknown_cell = Array.new()
+    clear_cell = Array.new()
+    flag = Array.new()
+    bomb = Array.new()
+    clicked_bomb = Array.new()
+    to_print = Hash.new()
     [*1..@size].each do |e|
-      if( e.to_i % @board.height.to_i == 0 )
-        puts @board.getCellStatus(e)
-      else
-        print @board.getCellStatus(e)
+      case board.getCellStatus(e, xray)
+      when '.'
+        unknown_cell.push(e)
+      when ' '
+        clear_cell.push(e)
+      when '#'
+        bomb.push(e)
+      when 'F'
+        flag.push(e)
+      when 'X'
+        clicked_bomb.push(e)
       end
+      to_print[e] = board.getCellStatus(e, xray)
     end
+    Hash[
+      :"unknown_cell" => unknown_cell,
+      :"clear_cell" => clear_cell,
+      :"bomb" => bomb,
+      :"flag" => flag,
+      :"clicked_bomb" => clicked_bomb,
+      :"xray" => xray,
+      :"to_print" => to_print,
+      :"columns" => @board.height
+    ]
   end
 
   def flag x,y
@@ -137,37 +190,22 @@ class Minesweeper
   end
 end
 
-game = Minesweeper.new()
+width, height, num_mines = 10, 20, 50
+game = Minesweeper.new(width, height, num_mines)
 
-game.SimplePrinter
-game.flag 1,3
-if game.play 1,2
-  puts ''
-  game.SimplePrinter
-end
-# if game.play 5,6
-#   puts ''
-#   game.SimplePrinter
-# end
-# if game.play 4,8
-#   puts ''
-#   game.SimplePrinter
-# end
-# if game.play 3,3
-#   puts ''
-#   game.SimplePrinter
-# end
-# if game.play 1,4
-#   puts ''
-#   game.SimplePrinter
-# end
-
-if(!game.still_playing?)
-  if game.victory?
-    puts 'venceu'
-  else
-    puts 'perdeu'
+while game.still_playing?
+  valid_move = game.play(rand(width), rand(height))
+  valid_flag = game.flag(rand(width), rand(height))
+  if valid_move or valid_flag
+  printer = (rand > 0.5) ? SimplePrinter.new : PrettyPrinter.new
+  printer.print(game.board_state)
   end
+end
+
+puts "Fim do jogo!"
+if game.victory?
+  puts "Você venceu!"
 else
-  puts 'continua'
+  puts "Você perdeu! As minas eram:"
+  PrettyPrinter.new.print(game.board_state(xray: true))
 end
